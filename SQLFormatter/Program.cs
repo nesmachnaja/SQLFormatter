@@ -67,6 +67,18 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bnocount\b", "NOCOUNT", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\btop\b", "TOP", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bexec\b", "EXEC", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bwith\b", "WITH", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bouter\b", "OUTER", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bcross\b", "CROSS", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\binner\b", "INNER", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bleft\b", "LEFT", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bright\b", "RIGHT", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bapply\b", "APPLY", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bunion\b", "UNION", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bunion[\t\s]*all\b", "UNION ALL", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\border[\t\s]*by\b", "ORDER BY", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bdistinct\b", "DISTINCT", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\binto\b", "INTO", RegexOptions.IgnoreCase);
 
                 string updatedContent = beforeCreateProcedure + afterCreateProcedure;
 
