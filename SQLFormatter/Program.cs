@@ -79,6 +79,13 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\border[\t\s]*by\b", "ORDER BY", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bdistinct\b", "DISTINCT", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\binto\b", "INTO", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bcase\b", "CASE", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bwhen\b", "WHEN", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\belse\b", "ELSE", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bthen\b", "THEN", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\band\b", "AND", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bor\b", "OR", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bnot\b", "NOT", RegexOptions.IgnoreCase);
 
                 string updatedContent = beforeCreateProcedure + afterCreateProcedure;
 
