@@ -58,7 +58,7 @@ namespace SQLFormatter
             {
                 string sqlContent = File.ReadAllText(filePath, Encoding.UTF8);
 
-                int createProcedureIndex = Regex.Match(sqlContent, @"\bcreate\b\s+\bprocedure\b|\bcreate\b\s+\bview\b", RegexOptions.IgnoreCase).Index;
+                int createProcedureIndex = Regex.Match(sqlContent, @"\b(create|alter)\b\s+\b(procedure|view)\b", RegexOptions.IgnoreCase).Index;
 
                 if (createProcedureIndex == -1)
                 {
@@ -69,18 +69,66 @@ namespace SQLFormatter
                 string beforeCreateProcedure = sqlContent.Substring(0, createProcedureIndex);
                 string afterCreateProcedure = sqlContent.Substring(createProcedureIndex);
 
+                #region обработка комментариев к скрипту в шапке
                 string todayDate = DateTime.Now.ToString("yyyyMMdd");
-                beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
-                beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+by\s*:", $"-- Created by       :", RegexOptions.IgnoreCase);
 
+                // Находим все блоки комментариев, начинающиеся с "Ticket No" и заканчивающиеся перед следующим таким блоком или концом
+                string pattern = @"(--\s*Ticket No\s*:.*?)(?=(--\s*Ticket No\s*:|\*/|$))";
+
+                // Получаем все совпадения блоков
+                var matches = Regex.Matches(beforeCreateProcedure, pattern, RegexOptions.Singleline);
+
+                if (matches.Count > 1)
+                {
+                    // Берём последний блок
+                    var lastBlock = matches[matches.Count - 1];
+
+                    // Выполняем замену внутри последнего блока комментариев к скрипту
+                    string modifiedBlock = lastBlock.Groups[1].Value;
+                    modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Modified on      : {Regex.Match(modifiedBlock, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                    modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Created\s+on\s*:\s*\d{8}", $"-- Modified on      : {Regex.Match(modifiedBlock, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                    modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Created\s+by\s*:", $"-- Modified by      :", RegexOptions.IgnoreCase);
+
+                    // Заменяем исходный текст на модифицированный последний блок
+                    beforeCreateProcedure = beforeCreateProcedure.Remove(lastBlock.Index, lastBlock.Length).Insert(lastBlock.Index, modifiedBlock);
+                }
+                else
+                {
+                    beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Created\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                    beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                    beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+by\s*:", $"-- Created by       :", RegexOptions.IgnoreCase);
+                }
+                #endregion
+
+
+                #region удаление комментариев в теле скрипта
                 // Удаление всех однострочных комментариев (начинаются с "--")
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\bStep\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\b(Step|DM-)\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"--(?!.*\b(Step|DM-)\b).*$", "", RegexOptions.Multiline | RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"(\r?\n){4,}", "\r\n\r\n");
 
-                // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*.*?\*/", "", RegexOptions.Singleline);
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
 
+                // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
+                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*(?!.*\bDM-\d+\b).*?\*/", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*(?!.*?\bDM-\d+\b).*?\*/", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*.*?\*/", "", RegexOptions.Singleline);
+                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
+
+                // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
+                var multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*.*?\*/", RegexOptions.Singleline);
+
+                foreach (Match match in multiLineComments)
+                {
+                    if (!Regex.IsMatch(match.Value, @"\bDM-\d+\b", RegexOptions.IgnoreCase))
+                    {
+                        afterCreateProcedure = afterCreateProcedure.Replace(match.Value, "");
+                    }
+                }
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
+                #endregion
+
+
+                #region замена sql-команд на верхний регистр
                 // Замена команд SQL на верхний регистр в части после "create procedure"
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bcreate\b", "CREATE", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bprocedure\b", "PROCEDURE", RegexOptions.IgnoreCase);
@@ -123,6 +171,10 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\band\b", "AND", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bor\b", "OR", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bnot\b", "NOT", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bdelete\b", "DELETE", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bprint\b", "PRINT", RegexOptions.IgnoreCase);
+                #endregion
+
 
                 string updatedContent = beforeCreateProcedure + afterCreateProcedure;
 
