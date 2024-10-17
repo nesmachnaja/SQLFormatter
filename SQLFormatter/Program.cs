@@ -62,7 +62,7 @@ namespace SQLFormatter
 
                 if (createProcedureIndex == -1)
                 {
-                    Console.WriteLine("CREATE PROCEDURE или CREATE VIEW не найдено в файле.");
+                    Console.WriteLine("Команды создания или изменения объекта не найдены в файле.");
                     return;
                 }
 
