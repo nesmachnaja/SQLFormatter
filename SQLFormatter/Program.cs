@@ -173,6 +173,9 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bnot\b", "NOT", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bdelete\b", "DELETE", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bprint\b", "PRINT", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\binclude_null_values\b", "INCLUDE_NULL_VALUES", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bfor\s+json\s+auto\b", "FOR JSON AUTO", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bfor\s+json\s+path\b", "FOR JSON PATH", RegexOptions.IgnoreCase);
                 #endregion
 
 
