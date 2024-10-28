@@ -85,46 +85,60 @@ namespace SQLFormatter
 
                     // Выполняем замену внутри последнего блока комментариев к скрипту
                     string modifiedBlock = lastBlock.Groups[1].Value;
-                    modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Modified on      : {Regex.Match(modifiedBlock, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
-                    modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Created\s+on\s*:\s*\d{8}", $"-- Modified on      : {Regex.Match(modifiedBlock, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
-                    modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Created\s+by\s*:", $"-- Modified by      :", RegexOptions.IgnoreCase);
+
+                    if (!Regex.IsMatch(modifiedBlock, @"\(prod\)", RegexOptions.IgnoreCase))
+                    {
+                        modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Modified on      : {Regex.Match(modifiedBlock, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                        modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Created\s+on\s*:\s*\d{8}", $"-- Modified on      : {Regex.Match(modifiedBlock, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                        modifiedBlock = Regex.Replace(modifiedBlock, @"--\s*Created\s+by\s*:", $"-- Modified by      :", RegexOptions.IgnoreCase);
+                    }
 
                     // Заменяем исходный текст на модифицированный последний блок
                     beforeCreateProcedure = beforeCreateProcedure.Remove(lastBlock.Index, lastBlock.Length).Insert(lastBlock.Index, modifiedBlock);
                 }
                 else
                 {
-                    beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Created\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
-                    beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
-                    beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+by\s*:", $"-- Created by       :", RegexOptions.IgnoreCase);
+                    if (!Regex.IsMatch(beforeCreateProcedure, @"\(prod\)", RegexOptions.IgnoreCase))
+                    {
+                        beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Created\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                        beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+on\s*:\s*\d{8}", $"-- Created on       : {Regex.Match(beforeCreateProcedure, @"\d{8}").Value}, {todayDate} (prod)", RegexOptions.IgnoreCase);
+                        beforeCreateProcedure = Regex.Replace(beforeCreateProcedure, @"--\s*Modified\s+by\s*:", $"-- Created by       :", RegexOptions.IgnoreCase);
+                    }
                 }
                 #endregion
 
 
                 #region удаление комментариев в теле скрипта
-                // Удаление всех однострочных комментариев (начинаются с "--")
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\b(Step|DM-)\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline);
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"--(?!.*\b(Step|DM-)\b).*$", "", RegexOptions.Multiline | RegexOptions.IgnoreCase);
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"(\r?\n){4,}", "\r\n\r\n");
+                Console.WriteLine("Удалить комментарии? Введите 'Y' для подтверждения или 'N' для отказа:");
+                string userConsent = Console.ReadLine().Trim().ToUpper();
 
 
-                // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
-                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*(?!.*\bDM-\d+\b).*?\*/", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*(?!.*?\bDM-\d+\b).*?\*/", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*.*?\*/", "", RegexOptions.Singleline);
-                //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
-
-                // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
-                var multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*.*?\*/", RegexOptions.Singleline);
-
-                foreach (Match match in multiLineComments)
+                if (userConsent == "Y")
                 {
-                    if (!Regex.IsMatch(match.Value, @"\bDM-\d+\b", RegexOptions.IgnoreCase))
+                    // Удаление всех однострочных комментариев (начинаются с "--")
+                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\b(Step|DM-)\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline);
+                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"--(?!.*\b(Step|DM-)\b).*$", "", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"(\r?\n){4,}", "\r\n\r\n");
+
+
+                    // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
+                    //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*(?!.*\bDM-\d+\b).*?\*/", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                    //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*(?!.*?\bDM-\d+\b).*?\*/", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                    //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"/\*.*?\*/", "", RegexOptions.Singleline);
+                    //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
+
+                    // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
+                    var multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*.*?\*/", RegexOptions.Singleline);
+
+                    foreach (Match match in multiLineComments)
                     {
-                        afterCreateProcedure = afterCreateProcedure.Replace(match.Value, "");
+                        if (!Regex.IsMatch(match.Value, @"\bDM-\d+\b", RegexOptions.IgnoreCase))
+                        {
+                            afterCreateProcedure = afterCreateProcedure.Replace(match.Value, "");
+                        }
                     }
+                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
                 }
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
                 #endregion
 
 
@@ -183,12 +197,14 @@ namespace SQLFormatter
 
                 File.WriteAllText(filePath, updatedContent, Encoding.Unicode);
 
-                Console.WriteLine("SQL команды успешно заменены на верхний регистр, комментарии удалены.");
+                //Console.WriteLine("SQL команды успешно заменены на верхний регистр, комментарии удалены.");
+                Console.WriteLine("SQL-скрипт успешно отформатирован.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Произошла ошибка: {ex.Message}");
             }
         }
+
     }
 }
