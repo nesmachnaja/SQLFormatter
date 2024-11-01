@@ -7,14 +7,24 @@ namespace SQLFormatter
 {
     class Program
     {
+        private static bool? ignoredComments;
+
         static void Main(string[] args)
         {
-            Console.WriteLine("Enter the path of sql-files folder:");
-            string folderPath = Console.ReadLine();
+            //Console.WriteLine("Enter the path of sql-files folder:");
+            string folderPath = string.Empty;
+
+            while (folderPath == string.Empty || !Directory.Exists(folderPath))
+            {
+                folderPath = GetDirectory();
+                if (!Directory.Exists(folderPath)) Console.WriteLine("Указанной директории не существует");
+            }
+
             string[] sqlFiles = Directory.GetFiles(folderPath, "*.sql");
 
             foreach (string filePath in sqlFiles)
             {
+                Console.WriteLine("Файл: " + Regex.Match(filePath, @"[^\\]+$").Value);
                 Console.WriteLine($"Detected encoding: {DetectEncoding(filePath)}");
 
                 //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -30,6 +40,14 @@ namespace SQLFormatter
             //    System.Console.WriteLine(fileContent);
             //    System.Console.WriteLine("Кодировка: " + reader.CurrentEncoding);
             //}
+        }
+
+        private static string GetDirectory()
+        {
+            Console.WriteLine("Введите путь к папке с файлами для редактирования:");
+            string folderPath = Console.ReadLine();
+            Console.WriteLine();
+            return folderPath;
         }
 
         static string DetectEncoding(string filePath)
@@ -109,11 +127,20 @@ namespace SQLFormatter
 
 
                 #region удаление комментариев в теле скрипта
-                Console.WriteLine("Удалить комментарии? Введите 'Y' для подтверждения или 'N' для отказа:");
-                string userConsent = Console.ReadLine().Trim().ToUpper();
+                string userConsent = string.Empty;
+                if (ignoredComments == null)
+                {
+                    Console.WriteLine("Удалить комментарии? Введите 'Y' - для подтверждения, 'N' - для отказа, 'YA' - для подтверждения во всех файлах, 'NA' - для отказа во всех файлах:");
+                    userConsent = Console.ReadLine().Trim().ToUpper();
+                    ignoredComments = userConsent switch
+                    {
+                        "NA" => true,
+                        "YA" => false,
+                        _ => null
+                    };
+                }
 
-
-                if (userConsent == "Y")
+                if (userConsent == "Y" || ignoredComments != null && !(bool)ignoredComments)
                 {
                     // Удаление всех однострочных комментариев (начинаются с "--")
                     afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\b(Step|DM-)\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline);
@@ -128,16 +155,21 @@ namespace SQLFormatter
                     //afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
 
                     // Удаление всех многострочных комментариев (начинаются с "/*" и заканчиваются "*/")
-                    var multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*.*?\*/", RegexOptions.Singleline);
+                    //var multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*.*?\*/", RegexOptions.Singleline);
+                    var multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*(?:(?!/\*|DM-\d+).)*?\*/", RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-                    foreach (Match match in multiLineComments)
+                    while (multiLineComments.Count > 0)
                     {
-                        if (!Regex.IsMatch(match.Value, @"\bDM-\d+\b", RegexOptions.IgnoreCase))
+                        foreach (Match match in multiLineComments)
                         {
-                            afterCreateProcedure = afterCreateProcedure.Replace(match.Value, "");
+                            if (!Regex.IsMatch(match.Value, @"\bDM-\d+\b", RegexOptions.IgnoreCase))
+                            {
+                                afterCreateProcedure = afterCreateProcedure.Replace(match.Value, " ");
+                            }
                         }
+                        afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
+                        multiLineComments = Regex.Matches(afterCreateProcedure, @"/\*(?:(?!/\*|DM-\d+).)*?\*/", RegexOptions.Singleline | RegexOptions.IgnoreCase);
                     }
-                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" {2,}", " ");
                 }
                 #endregion
 
@@ -193,12 +225,18 @@ namespace SQLFormatter
                 #endregion
 
 
+                #region финальное оформление
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" ,", ",");
+                #endregion
+
+
                 string updatedContent = beforeCreateProcedure + afterCreateProcedure;
 
                 File.WriteAllText(filePath, updatedContent, Encoding.Unicode);
 
                 //Console.WriteLine("SQL команды успешно заменены на верхний регистр, комментарии удалены.");
                 Console.WriteLine("SQL-скрипт успешно отформатирован.");
+                Console.WriteLine();
             }
             catch (Exception ex)
             {
