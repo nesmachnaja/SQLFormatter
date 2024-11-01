@@ -12,6 +12,7 @@ namespace SQLFormatter
         static void Main(string[] args)
         {
             //Console.WriteLine("Enter the path of sql-files folder:");
+            Console.WriteLine(" /\\_/\\ \n( o.o )\n > ^ <");
             string folderPath = string.Empty;
 
             while (folderPath == string.Empty || !Directory.Exists(folderPath))
@@ -40,6 +41,10 @@ namespace SQLFormatter
             //    System.Console.WriteLine(fileContent);
             //    System.Console.WriteLine("Кодировка: " + reader.CurrentEncoding);
             //}
+
+            Console.WriteLine(" /\\_/\\ \n( -.- )\n > ^ <\n");
+            Console.WriteLine("Нажмите любую клавишу для выхода");
+            Console.ReadKey();
         }
 
         private static string GetDirectory()
