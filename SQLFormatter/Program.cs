@@ -148,7 +148,7 @@ namespace SQLFormatter
                 if (userConsent == "Y" || ignoredComments != null && !(bool)ignoredComments)
                 {
                     // Удаление всех однострочных комментариев (начинаются с "--")
-                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\b(Step|DM-)\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline);
+                    afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^[\t\s]*--(?!.*\b(Step|DM-)\b).*?(?:\r?\n|$)", "\r\n", RegexOptions.Multiline | RegexOptions.IgnoreCase);
                     afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"--(?!.*\b(Step|DM-)\b).*$", "", RegexOptions.Multiline | RegexOptions.IgnoreCase);
                     afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"(\r?\n){4,}", "\r\n\r\n");
 
@@ -212,7 +212,7 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bapply\b", "APPLY", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bunion\b", "UNION", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bunion[\t\s]*all\b", "UNION ALL", RegexOptions.IgnoreCase);
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\border[\t\s]*by\b", "ORDER BY", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\border[\t\s]+by\b", "ORDER BY", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bdistinct\b", "DISTINCT", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\binto\b", "INTO", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bcase\b", "CASE", RegexOptions.IgnoreCase);
@@ -228,12 +228,17 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bfor\s+json\s+auto\b", "FOR JSON AUTO", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bfor\s+json\s+path\b", "FOR JSON PATH", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bthrow\b", "THROW", RegexOptions.IgnoreCase);
-                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\btruncate\b", "TRUNCATE", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\btruncate[\t\s]*table\b", "TRUNCATE TABLE", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\btry\b", "TRY", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bcatch\b", "CATCH", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\breturn\b", "RETURN", RegexOptions.IgnoreCase);
                 #endregion
 
 
                 #region финальное оформление
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @" ,", ",");
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^ ", "\t", RegexOptions.Multiline);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"^\t ", "\t", RegexOptions.Multiline);
                 #endregion
 
 
