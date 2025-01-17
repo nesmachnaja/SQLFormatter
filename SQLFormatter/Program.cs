@@ -229,6 +229,7 @@ namespace SQLFormatter
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bfor\s+json\s+path\b", "FOR JSON PATH", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bthrow\b", "THROW", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\btruncate[\t\s]*table\b", "TRUNCATE TABLE", RegexOptions.IgnoreCase);
+                afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bgroup[\t\s]*by\b", "GROUP BY", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\btry\b", "TRY", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\bcatch\b", "CATCH", RegexOptions.IgnoreCase);
                 afterCreateProcedure = Regex.Replace(afterCreateProcedure, @"\breturn\b", "RETURN", RegexOptions.IgnoreCase);
